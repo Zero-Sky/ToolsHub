@@ -95,6 +95,27 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Assets\1.png" />
+    <Resource Include="Assets\2.jpg" />
+    <Resource Include="Assets\20140328093909583_easyicon_net_96.ico" />
+    <Resource Include="Assets\3.png" />
+    <Resource Include="Assets\background.png" />
+    <Resource Include="Assets\document.png" />
+    <Resource Include="Assets\exit.png" />
+    <Resource Include="Assets\feedback.png" />
+    <Resource Include="Assets\help.png" />
+    <Resource Include="Assets\icon.ico" />
+    <Resource Include="Assets\info.png" />
+    <Resource Include="Assets\Off.png" />
+    <Resource Include="Assets\On.png" />
+    <Resource Include="Assets\open.png" />
+    <Resource Include="Assets\qq.png" />
+    <Resource Include="Assets\save.png" />
+    <Resource Include="Assets\weibo.jpg" />
+    <Resource Include="Assets\weixin.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -5,8 +5,176 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UartGui"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
+        Title="MainWindow" Height="570" Width="700" Loaded="Window_Loaded">
+    <Grid ShowGridLines="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="398*"/>
+            <ColumnDefinition Width="119*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25"/>
+            <RowDefinition MinHeight="320"/>
+            <RowDefinition MaxHeight="158"/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+        <!--DockPanel,让菜单栏停靠在top，那么其横向就会扩展到整个DockPanel-->
+        <DockPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top"   >
+            <!--文件+帮助是一个菜单栏，文件是一个MenuItem，下拉菜单是也MenuItem，二级菜单才是子MenuItem-->
+            <Menu DockPanel.Dock="Top">
+                <Menu.Background>
+                    <ImageBrush/>
+                </Menu.Background>
+                <MenuItem Header="文件">
+                    <MenuItem.Icon>
+                        <Image Source="Assets\document.png" Height="25" Width="20"/>
+                    </MenuItem.Icon>
+                    
+                    <MenuItem  Header="打开" Command="Open">
+                        <MenuItem.Icon>
+                            <Image Source="Assets\open.png" Height="25" Width="25"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="保存">
+                        <MenuItem.Icon>
+                            <Image Source="Assets\save.png" Height="20" Width="20"/>
+                        </MenuItem.Icon>
+                        <MenuItem x:Name="wpf_SaveNew" Header="保存到新文件" Click="wpf_SaveNew_Click"/>
+                        <MenuItem x:Name="wpf_SaveOld" Header="保存到已有文件" Click="wpf_SaveOld_Click"/>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="退出" Command="Close" InputGestureText="Alt+F4">
+                        <MenuItem.Icon>
+                            <Image Source="Assets\exit.png" Height="20" Width="20"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem Header="帮助" HorizontalAlignment="Left">
+                    <MenuItem.Icon>
+                        <Image Source="Assets\help.png" Height="20" Width="20" />
+                    </MenuItem.Icon>
+                    <MenuItem x:Name="wpf_Info" Header="关于..." Click="wpf_Info_Click" >
+                        <MenuItem.Icon>
+                            <Image Source="Assets\info.png" Height="25" Width="25" HorizontalAlignment="Left" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="wpf_FeedBack" Header="反馈..." Click="wpf_FeedBack_Click" >
+                        <MenuItem.Icon>
+                            <Image Source="Assets\feedback.png" Height="25" Width="25" HorizontalAlignment="Left" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+            </Menu>
+
+        </DockPanel>
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ShowGridLines="True" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="230"/>
+                    <RowDefinition Height="90"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition Height="25"/>
+                        <RowDefinition Height="50"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="串口号:" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"/>
+                    <TextBlock Text="波特率:" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0"/>
+                    <TextBlock Text="校验位:" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0"/>
+                    <TextBlock Text="数据位:" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0"/>
+                    <TextBlock Text="停止位:" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="4" Grid.Column="0"/>
+                    <ComboBox x:Name="wpf_port" Grid.Row="0" Grid.Column="1" Margin="0,5,0,0" ToolTip="点击刷新" PreviewMouseDown="wpf_port_PreviewMouseDown" SelectionChanged="wpf_port_SelectionChanged" VerticalAlignment="Top" />
+                    <ComboBox x:Name="wpf_baudrate" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Margin="0,5,0,0" />
+                    <ComboBox x:Name="wpf_parity"  Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,5,0,0" />
+                    <ComboBox x:Name="wpf_databit"   Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                    <ComboBox x:Name="wpf_stopbit"   Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                    <Button Content="重置" x:Name="wpf_reset" Grid.Row="5" Grid.ColumnSpan="2" Margin="5,1,0,1" Click="wpf_reset_Click" />
+                    <Button  Content="打开串口" x:Name="wpf_openCom" Grid.Row="6" Grid.Column="1" VerticalAlignment="Center"  Height="45" Click="wpf_openCom_Click" />
+                    <Image x:Name="OpenImage" Source="Assets\Off.png" HorizontalAlignment="Center" VerticalAlignment="Center" Height="40"  Grid.Row="6" Grid.Column="0"   Width="40"/>
+                </Grid>
+                <Grid Grid.Row="1" Grid.Column="0" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <CheckBox Content="16进制接收" x:Name="wpf_RecvHex" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,5,0,0" Grid.Row="0"/>
+                    <Button Content="保存数据" x:Name="wpf_save" Command="Save" Margin="10,10,10,10" Grid.Row="1" />
+                </Grid>
+            </Grid>
+            <Grid Grid.Row="0" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="接收的数据："  Margin="10,0,0,0" Grid.Row="0" Grid.Column="0" VerticalAlignment="Bottom"/>
+                <Label Content="已暂停接收，点击开启→" x:Name="recPrompt" Grid.Row="0" Grid.Column="0" Margin="0,0,170,0" HorizontalAlignment="Right" Visibility="Hidden" Foreground="#FFFFFF2F" Background="{x:Null}"  />
+                <Button Content="暂停接收" x:Name="wpf_stopRecv" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0" Width="75" Margin="0,3,100,0" Click="wpf_stopRecv_Click"/>
+                <Button Content="清空接收区" x:Name="wpf_clrRecv" HorizontalAlignment="Right"  Grid.Row="0" Grid.Column="0" VerticalAlignment="Bottom" Width="75" Margin="0,0,5,0" Click="wpf_clrRecv_Click"/>
+                <Border x:Name="wpf_RecvBorder" BorderThickness="1" Margin="11,1,6,1" Grid.Row="1" Grid.Column="0" BorderBrush="Gray"  Background="White" Opacity="0.4"   />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" Grid.Column="0" Padding="0,0,0,0" Margin="12,2,7,2"  >
+                    <TextBox x:Name="wpf_RecvBox"   TextWrapping="Wrap"  ScrollViewer.VerticalScrollBarVisibility="Auto" AcceptsReturn="True" Background="{x:Null}" ClipToBounds="True" Foreground="Black" TextChanged="wpf_Recv_TextChanged"   />
+                </ScrollViewer>
+                <Line Width="500" Height="500" Fill="#FFD13535" Stroke="#FFD81010" OpacityMask="Black"/>
+            </Grid>
+        </Grid>
+
+
+
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ShowGridLines="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="1" Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="wpf_SendBorder" BorderThickness="1" Margin="10,0,0,0"  Grid.Row="0" Grid.Column="0" Background="White" Opacity="0.4"  />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="0" Grid.Column="0" Padding="0,0,0,0"  MinHeight="100" MinWidth="460" Margin="10,0,0,0">
+                    <TextBox x:Name="wpf_SendBox"  TextWrapping="Wrap" ClipToBounds="True" Background="{x:Null}" AcceptsReturn="True" />
+                </ScrollViewer>
+                <Grid Height="130" Grid.Row="0" Grid.Column="1" VerticalAlignment="Bottom" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <CheckBox Content="16进制发送" x:Name="wpf_SendHex" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="15" Grid.Row="0" Grid.Column="0"/>
+                    <CheckBox Content="自动发送" x:Name="wpf_AutoSend" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="15" Grid.Row="1" Grid.Column="0" Click="wpf_AutoSend_Click" />
+                    <TextBlock Text="周期:" x:Name="Cycle" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="15" Grid.Row="2" Grid.Column="0"/>
+                    <TextBox Text="100" x:Name="wpf_Time" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" Margin="0,5,23,5" Width="38" KeyDown="wpf_Time_KeyDown" LostFocus="wpf_Time_LostFocus" TextChanged="wpf_Time_TextChanged"/>
+                    <TextBlock Text="ms" x:Name="Unit" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="15" Grid.Row="2" Grid.Column="0" Margin="0,6,2,6"/>
+                    <Button Content="打开文件" Command="Open" x:Name="wpf_OpenFile" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0" Width="90" />
+                    <Button Content="清空发送区" x:Name="wpf_ClrSend" HorizontalAlignment="Center" VerticalAlignment="Center" Click="wpf_ClrSend_Click"  Grid.Row="0" Grid.Column="1" Height="25" Width="80"/>
+                    <Button  Content="计数清零" x:Name="wpf_ClrCount" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Grid.Row="1"  Grid.Column="1" Height="25" Width="80" Click="wpf_ClrCount_Click"/>
+                    <Button  Content="发送数据" Click="wpf_Send_Click" x:Name="wpf_Send" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="5" Grid.Row="2" Grid.RowSpan="2" Grid.Column="1" Height="50" Width="80"/>
+                </Grid>
+            </Grid>
+            <TextBlock Text="发送的数据：" Grid.Row="0" Grid.Column="0" VerticalAlignment="Bottom" Margin="10,0,0,0"/>
+        </Grid>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="发送字节数：" Margin="10,0,0,1" VerticalAlignment="Bottom" Grid.ColumnSpan="2"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="0" x:Name="wpf_SendCnt" Margin="80,0,0,1" VerticalAlignment="Bottom" Grid.ColumnSpan="2"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="接收字节数：" Margin="160,0,0,1" VerticalAlignment="Bottom" Grid.ColumnSpan="2"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="0" x:Name="wpf_RecvCnt" Margin="230,0,0,1" VerticalAlignment="Bottom" Grid.ColumnSpan="2"/>
     </Grid>
+
 </Window>
