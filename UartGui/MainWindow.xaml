@@ -6,7 +6,18 @@
         xmlns:local="clr-namespace:UartGui"
         mc:Ignorable="d"
         Title="MainWindow" Height="570" Width="700" Loaded="Window_Loaded">
-    <Grid ShowGridLines="True">
+    <Window.Background >
+        <ImageBrush ImageSource="Assets\background.png"/>
+    </Window.Background>
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Open"
+            Executed="FileOpen" />
+        <CommandBinding Command="ApplicationCommands.Save"
+            Executed="FileSave" />
+        <CommandBinding Command="ApplicationCommands.Close"
+            Executed="Window_Closed" />
+    </Window.CommandBindings>
+    <Grid >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="398*"/>
             <ColumnDefinition Width="119*"/>
@@ -66,7 +77,7 @@
             </Menu>
 
         </DockPanel>
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ShowGridLines="True" >
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="150"/>
@@ -123,8 +134,8 @@
                 <Label Content="已暂停接收，点击开启→" x:Name="recPrompt" Grid.Row="0" Grid.Column="0" Margin="0,0,170,0" HorizontalAlignment="Right" Visibility="Hidden" Foreground="#FFFFFF2F" Background="{x:Null}"  />
                 <Button Content="暂停接收" x:Name="wpf_stopRecv" HorizontalAlignment="Right" Grid.Row="0" Grid.Column="0" Width="75" Margin="0,3,100,0" Click="wpf_stopRecv_Click"/>
                 <Button Content="清空接收区" x:Name="wpf_clrRecv" HorizontalAlignment="Right"  Grid.Row="0" Grid.Column="0" VerticalAlignment="Bottom" Width="75" Margin="0,0,5,0" Click="wpf_clrRecv_Click"/>
-                <Border x:Name="wpf_RecvBorder" BorderThickness="1" Margin="11,1,6,1" Grid.Row="1" Grid.Column="0" BorderBrush="Gray"  Background="White" Opacity="0.4"   />
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" Grid.Column="0" Padding="0,0,0,0" Margin="12,2,7,2"  >
+                <Border x:Name="wpf_RecvBorder" BorderThickness="2" Margin="11,1,6,1" Grid.Row="1" Grid.Column="0" BorderBrush="#FFEA8383"  Background="White" Opacity="0.4" Padding="1"   />
+                <ScrollViewer x:Name="wpf_RecvScroll" VerticalScrollBarVisibility="Auto" Grid.Row="1" Grid.Column="0" Padding="0,0,0,0" Margin="12,2,7,2"  >
                     <TextBox x:Name="wpf_RecvBox"   TextWrapping="Wrap"  ScrollViewer.VerticalScrollBarVisibility="Auto" AcceptsReturn="True" Background="{x:Null}" ClipToBounds="True" Foreground="Black" TextChanged="wpf_Recv_TextChanged"   />
                 </ScrollViewer>
                 <Line Width="500" Height="500" Fill="#FFD13535" Stroke="#FFD81010" OpacityMask="Black"/>
@@ -133,7 +144,7 @@
 
 
 
-        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ShowGridLines="True">
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="25"/>
                 <RowDefinition/>
@@ -143,8 +154,8 @@
                     <ColumnDefinition/>
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Border x:Name="wpf_SendBorder" BorderThickness="1" Margin="10,0,0,0"  Grid.Row="0" Grid.Column="0" Background="White" Opacity="0.4"  />
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="0" Grid.Column="0" Padding="0,0,0,0"  MinHeight="100" MinWidth="460" Margin="10,0,0,0">
+                <Border x:Name="wpf_SendBorder" BorderThickness="2" Margin="10,0,0,0"  Grid.Row="0" Grid.Column="0" Background="#FFF3DEDE" Opacity="0.4" Padding="0"  />
+                <ScrollViewer x:Name="wpf_SendScroll" VerticalScrollBarVisibility="Auto" Grid.Row="0" Grid.Column="0" Padding="0,0,0,0"  MinHeight="100" MinWidth="460" Margin="10,0,0,0">
                     <TextBox x:Name="wpf_SendBox"  TextWrapping="Wrap" ClipToBounds="True" Background="{x:Null}" AcceptsReturn="True" />
                 </ScrollViewer>
                 <Grid Height="130" Grid.Row="0" Grid.Column="1" VerticalAlignment="Bottom" >
@@ -163,7 +174,7 @@
                     <TextBlock Text="周期:" x:Name="Cycle" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="15" Grid.Row="2" Grid.Column="0"/>
                     <TextBox Text="100" x:Name="wpf_Time" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" Margin="0,5,23,5" Width="38" KeyDown="wpf_Time_KeyDown" LostFocus="wpf_Time_LostFocus" TextChanged="wpf_Time_TextChanged"/>
                     <TextBlock Text="ms" x:Name="Unit" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="15" Grid.Row="2" Grid.Column="0" Margin="0,6,2,6"/>
-                    <Button Content="打开文件" Command="Open" x:Name="wpf_OpenFile" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0" Width="90" />
+                    <Button Content="打开文件" Command="Open" x:Name="wpf_OpenFile" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="3" Grid.Column="0" Width="90" Visibility="Hidden" />
                     <Button Content="清空发送区" x:Name="wpf_ClrSend" HorizontalAlignment="Center" VerticalAlignment="Center" Click="wpf_ClrSend_Click"  Grid.Row="0" Grid.Column="1" Height="25" Width="80"/>
                     <Button  Content="计数清零" x:Name="wpf_ClrCount" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Grid.Row="1"  Grid.Column="1" Height="25" Width="80" Click="wpf_ClrCount_Click"/>
                     <Button  Content="发送数据" Click="wpf_Send_Click" x:Name="wpf_Send" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="5" Grid.Row="2" Grid.RowSpan="2" Grid.Column="1" Height="50" Width="80"/>

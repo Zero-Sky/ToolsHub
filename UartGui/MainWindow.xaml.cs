@@ -23,6 +23,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Management;
+using Microsoft.Win32;
+using System.IO;
 
 namespace UartGui
 {
@@ -41,12 +44,13 @@ namespace UartGui
 		 ***************************************************************************/
 		SerialPort ComPort = new SerialPort();				//串口基类
 		List<customer> ComList = new List<customer>();      //可用串口列表，该列表不是一次性，会刷新
-		Thread _ComSend = null;								//线程还是不要局部变量了
+		Thread _ComSend = null;                             //线程还是不要局部变量了
+		DispatcherTimer AutoSendTick = new DispatcherTimer();	//定时发送线程
 		//各种标志位
 		private struct Flag_t
 		{
-			public bool IsOpen; //串口是否逻辑打开，注意和SerialPort.IsOpen的实际打开区别
-			public bool WaitClose;//invoke里判断是否正在关闭串口是否正在关闭串口，执行Application.DoEvents，并阻止再次invoke ,解决关闭串口时，程序假死，具体参见http://news.ccidnet.com/art/32859/20100524/2067861_4.html 仅在单线程收发使用，但是在公共代码区有相关设置，所以未用#define隔离
+			public bool IsOpen;		//串口是否逻辑打开，注意和SerialPort.IsOpen的实际打开区别
+			public bool WaitClose;	//invoke里判断是否正在关闭串口是否正在关闭串口，执行Application.DoEvents，并阻止再次invoke ,解决关闭串口时，程序假死，具体参见http://news.ccidnet.com/art/32859/20100524/2067861_4.html 仅在单线程收发使用，但是在公共代码区有相关设置，所以未用#define隔离
 			public bool RecvSta;    //当前是否正在接收
 			public bool Sending;	//当前线程是否正在发送中
 		}
@@ -75,6 +79,106 @@ namespace UartGui
 			public string Sbits { get; set; }
 		}
 
+#if false
+		/****************************************************************************
+		 * 功能：获取串口硬件名字
+		 * 描述：
+		 * 参数：
+		 * 返回：
+		 ***************************************************************************/
+		public enum HardwareEnum
+		{
+			// 硬件
+			Win32_Processor, // CPU 处理器
+			Win32_PhysicalMemory, // 物理内存条
+			Win32_Keyboard, // 键盘
+			Win32_PointingDevice, // 点输入设备，包括鼠标。
+			Win32_FloppyDrive, // 软盘驱动器
+			Win32_DiskDrive, // 硬盘驱动器
+			Win32_CDROMDrive, // 光盘驱动器
+			Win32_BaseBoard, // 主板
+			Win32_BIOS, // BIOS 芯片
+			Win32_ParallelPort, // 并口
+			Win32_SerialPort, // 串口
+			Win32_SerialPortConfiguration, // 串口配置
+			Win32_SoundDevice, // 多媒体设置，一般指声卡。
+			Win32_SystemSlot, // 主板插槽 (ISA & PCI & AGP)
+			Win32_USBController, // USB 控制器
+			Win32_NetworkAdapter, // 网络适配器
+			Win32_NetworkAdapterConfiguration, // 网络适配器设置
+			Win32_Printer, // 打印机
+			Win32_PrinterConfiguration, // 打印机设置
+			Win32_PrintJob, // 打印机任务
+			Win32_TCPIPPrinterPort, // 打印机端口
+			Win32_POTSModem, // MODEM
+			Win32_POTSModemToSerialPort, // MODEM 端口
+			Win32_DesktopMonitor, // 显示器
+			Win32_DisplayConfiguration, // 显卡
+			Win32_DisplayControllerConfiguration, // 显卡设置
+			Win32_VideoController, // 显卡细节。
+			Win32_VideoSettings, // 显卡支持的显示模式。
+
+			// 操作系统
+			Win32_TimeZone, // 时区
+			Win32_SystemDriver, // 驱动程序
+			Win32_DiskPartition, // 磁盘分区
+			Win32_LogicalDisk, // 逻辑磁盘
+			Win32_LogicalDiskToPartition, // 逻辑磁盘所在分区及始末位置。
+			Win32_LogicalMemoryConfiguration, // 逻辑内存配置
+			Win32_PageFile, // 系统页文件信息
+			Win32_PageFileSetting, // 页文件设置
+			Win32_BootConfiguration, // 系统启动配置
+			Win32_ComputerSystem, // 计算机信息简要
+			Win32_OperatingSystem, // 操作系统信息
+			Win32_StartupCommand, // 系统自动启动程序
+			Win32_Service, // 系统安装的服务
+			Win32_Group, // 系统管理组
+			Win32_GroupUser, // 系统组帐号
+			Win32_UserAccount, // 用户帐号
+			Win32_Process, // 系统进程
+			Win32_Thread, // 系统线程
+			Win32_Share, // 共享
+			Win32_NetworkClient, // 已安装的网络客户端
+			Win32_NetworkProtocol, // 已安装的网络协议
+			Win32_PnPEntity,//all device
+		}
+		/// <summary>
+		/// WMI取硬件信息
+		/// </summary>
+		/// <param name="hardType"></param>
+		/// <param name="propKey"></param>
+		/// <returns></returns>
+		public static string[] MulGetHardwareInfo(HardwareEnum hardType, string propKey)
+		{
+
+			List<string> strs = new List<string>();
+			try
+			{
+				using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("select * from " + hardType))
+				{
+					var hardInfos = searcher.Get();
+					foreach (var hardInfo in hardInfos)
+					{
+						if (hardInfo.Properties[propKey].Value.ToString().Contains("COM"))
+						{
+							strs.Add(hardInfo.Properties[propKey].Value.ToString());
+						}
+
+					}
+					searcher.Dispose();
+				}
+				return strs.ToArray();
+			}
+			catch
+			{
+				return null;
+			}
+			finally
+			{ strs = null; }
+		}
+		//通过WMI获取COM端口
+		string[] ss = MulGetHardwareInfo(HardwareEnum.Win32_PnPEntity, "Name");
+#endif
 		/****************************************************************************
 		 * 功能：刷新当前可用串口，并添加到Combobox中
 		 * 描述：
@@ -89,12 +193,11 @@ namespace UartGui
 			{
 				for(int i=0; i<port.Length; i++)
 				{
-					ComList.Add(new customer() { com = port[i] });	//使用匿名方法添加串口列表
+					ComList.Add(new customer() { com = port[i]});	//使用匿名方法添加串口列表
 				}
 				wpf_port.ItemsSource = ComList;         //资源路径
 				wpf_port.DisplayMemberPath = "com";     //显示路径
 				wpf_port.SelectedValuePath = "com";     //值路径
-				//wpf_port.SelectedValue = port[0];       //显示第一个串口
 				wpf_port.SelectedIndex = 0;				//同上
 
 				return true;
@@ -173,7 +276,7 @@ namespace UartGui
 			ComPort.WriteTimeout = 8000;
 			ComPort.ReadBufferSize = 1024;      //读数据缓存
 			ComPort.WriteBufferSize = 1024;
-			wpf_Send.IsEnabled = true;         //发送按钮默认不可用
+			wpf_Send.IsEnabled = false;         //发送按钮默认不可用
 			wpf_SendHex.IsChecked = true;       //16进制发送默认选中
 			wpf_RecvHex.IsChecked = true;
 			UartFlag.IsOpen = false;
@@ -181,25 +284,23 @@ namespace UartGui
 			UartFlag.RecvSta = true;
 			//↑↑↑↑↑↑↑↑↑其他默认设置↑↑↑↑↑↑↑↑↑
 			ComPort.DataReceived += InterrputComRecvive;       //添加串口接收中断处理
-			//当中断数据到来时，后台处理数据，反馈到前台UI上
-			//Thread _ComRec = new Thread(new ThreadStart(ComRec));
-			//_ComRec.Start();	
+			AutoSendTick.Tick += InterruptAutoSend;				//定时发送
 		}
 
 		/****************************************************************************
-		* 功能：串口接收处理程序
-		* 描述：提取中断数据，激活UI
+		* 功能：自动发送
+		* 描述：
 		* 参数：
 		* 返回：
 		***************************************************************************/
-		private void ComRec()
+		private void InterruptAutoSend(object sender, EventArgs e)
 		{
-			
+			send();	
 		}
 
 		/****************************************************************************
 		* 功能：串口接收中断处理程序
-		* 描述：
+		* 描述：中断是一个单独线程
 		* 参数：
 		* 返回：
 		***************************************************************************/
@@ -212,9 +313,8 @@ namespace UartGui
 				byte[] RecBuf = null;//接收缓冲区
 				try
 				{
-					RecBuf = new byte[ComPort.BytesToRead];//接收数据缓存大小
-					ComPort.Read(RecBuf, 0, RecBuf.Length);//读取数据
-					//recQueue.Enqueue(recBuffer);//读取数据入列Enqueue（全局）
+					RecBuf = new byte[ComPort.BytesToRead];				//接收数据缓存大小
+					ComPort.Read(RecBuf, 0, RecBuf.Length);				//读取数据
 				}
 				catch
 				{
@@ -248,7 +348,7 @@ namespace UartGui
 						wpf_RecvBox.Text += recBuffer16.ToString();//加显到接收区
 					}
 					wpf_RecvCnt.Text = (Convert.ToInt32(wpf_RecvCnt.Text) + RecBuf.Length).ToString();//接收数据字节数
-					//recScrol.ScrollToBottom();//接收文本框滚动至底部
+					wpf_RecvScroll.ScrollToBottom();//接收文本框滚动至底部
 				});
 
 			}
@@ -279,9 +379,10 @@ namespace UartGui
 		}
 		private void SetComLose()
 		{
+
+			AutoSendTick.Stop();//串口丢失后要关闭自动发送
+			wpf_AutoSend.IsChecked = false;//自动发送改为未选中
 #if false
-			autoSendTick.Stop();//串口丢失后要关闭自动发送
-			autoSendCheck.IsChecked = false;//自动发送改为未选中
 			WaitClose = true;//;//激活正在关闭状态字，用于在串口接收方法的invoke里判断是否正在关闭串口
 			while (Listening)//判断invoke是否结束
 			{
@@ -333,7 +434,10 @@ namespace UartGui
 		 ***************************************************************************/
 		private void wpf_reset_Click(object sender, RoutedEventArgs e)
 		{
-
+			wpf_baudrate.SelectedIndex = 3;
+			wpf_parity.SelectedIndex = 0;
+			wpf_databit.SelectedIndex = 0;
+			wpf_stopbit.SelectedIndex = 0;
 		}
 		/****************************************************************************
 		 * 打开串口/关闭串口
@@ -381,13 +485,12 @@ namespace UartGui
 				wpf_databit.IsEnabled = false;
 				//↑↑↑↑↑↑↑↑↑成功打开串口后的设置↑↑↑↑↑↑↑↑↑
 
-#if false
+
 				if (wpf_AutoSend.IsChecked == true)//如果打开前，自动发送控件就被选中，则打开串口后自动开始发送数据
 				{
-					autoSendTick.Interval = TimeSpan.FromMilliseconds(Convert.ToInt32(Time.Text));//设置自动发送间隔
-					autoSendTick.Start();//开启自动发送
+					AutoSendTick.Interval = TimeSpan.FromMilliseconds(Convert.ToInt32(wpf_Time.Text));//设置自动发送间隔
+					AutoSendTick.Start();//开启自动发送
 				}
-#endif
 			}
 #endregion
 #region 关闭串口
@@ -462,7 +565,11 @@ namespace UartGui
 		 ***************************************************************************/
 		private void wpf_Send_Click(object sender, RoutedEventArgs e)
 		{
-			if (UartFlag.Sending == true)	return;                         //如果当前正在发送，则取消本次发送，本句注释后，可能阻塞在ComSend的lock处
+			send();
+		}
+		private void send()
+		{
+			if (UartFlag.Sending == true) return;                         //如果当前正在发送，则取消本次发送，本句注释后，可能阻塞在ComSend的lock处
 			SendArgv_t SendArgv = new SendArgv_t();
 			SendArgv.data = wpf_SendBox.Text;
 			SendArgv.hex = (bool)wpf_SendHex.IsChecked;
@@ -511,8 +618,8 @@ namespace UartGui
 					catch //无法转为16进制时，出现异常
 					{
 
-						//跨线程访问数据，同步模式
-						Dispatcher.Invoke((ThreadStart)delegate ()
+						//跨线程访问数据，异步模式
+						Dispatcher.BeginInvoke((ThreadStart)delegate ()
 					   {
 						   MessageBox.Show("请输入正确的16进制数据");
 					   }, null);
@@ -587,27 +694,68 @@ namespace UartGui
 
 		private void wpf_SaveNew_Click(object sender, RoutedEventArgs e)
 		{
+			if (wpf_RecvBox.Text == string.Empty)//接收区数据为空
+			{
+				MessageBox.Show("接收区为空，无法保存！");
+			}
+			else
+			{
+				SaveFileDialog Save_fd = new SaveFileDialog();//调用系统保存文件窗口
+				Save_fd.Filter = "TXT文本|*.txt";//文件过滤器
+				if (Save_fd.ShowDialog() == true)//选择了文件
+				{
+					File.WriteAllText(Save_fd.FileName, wpf_RecvBox.Text);//写入新的数据
+					File.AppendAllText(Save_fd.FileName, "\r\n------" + DateTime.Now.ToString() + "\r\n");//数据后面写入时间戳
+					MessageBox.Show("保存成功！");
+				}
 
+			}
 		}
 
 		private void wpf_SaveOld_Click(object sender, RoutedEventArgs e)
 		{
-
+			if (wpf_RecvBox.Text == string.Empty)//接收区数据为空
+			{
+				MessageBox.Show("接收区为空，无法保存！");
+			}
+			else
+			{
+				OpenFileDialog Open_fd = new OpenFileDialog();//调用系统保存文件窗口
+				Open_fd.Filter = "TXT文本|*.txt";//文件过滤器
+				if (Open_fd.ShowDialog() == true)//选择了文件
+				{
+					File.AppendAllText(Open_fd.FileName, wpf_RecvBox.Text);//在打开文件末尾写入数据
+					File.AppendAllText(Open_fd.FileName, "\r\n------" + DateTime.Now.ToString() + "\r\n");//数据后面写入时间戳
+					MessageBox.Show("添加成功！");
+				}
+			}
 		}
 
 		private void wpf_Info_Click(object sender, RoutedEventArgs e)
 		{
-
+			InfoWindow info = new InfoWindow();//new关于窗口
+			info.Owner = this;//赋予主窗口，子窗口打开后，再次点击主窗口，子窗口闪烁
+			info.Show();//ShowDialog方式打开关于窗口
 		}
 
 		private void wpf_FeedBack_Click(object sender, RoutedEventArgs e)
 		{
-
+			FeedBackWindow feedBack = new FeedBackWindow();//new反馈窗口
+			feedBack.Owner = this;//赋予主窗口，子窗口打开后，再次点击主窗口，子窗口闪烁
+			feedBack.ShowDialog();//ShowDialog方式打开反馈窗口
 		}
 
 		private void wpf_AutoSend_Click(object sender, RoutedEventArgs e)
 		{
-
+			if (wpf_AutoSend.IsChecked == true && ComPort.IsOpen == true)//如果当前状态为开启自动发送且串口已打开，则开始自动发送
+			{
+				AutoSendTick.Interval = TimeSpan.FromMilliseconds(Convert.ToInt32(wpf_Time.Text));//设置自动发送间隔
+				AutoSendTick.Start();//开始自动发送定时器
+			}
+			else//点击之前为开启自动发送状态，点击后关闭自动发送
+			{
+				AutoSendTick.Stop();//关闭自动发送定时器
+			}
 		}
 
 		private void wpf_Time_LostFocus(object sender, RoutedEventArgs e)
@@ -623,6 +771,29 @@ namespace UartGui
 		private void wpf_Time_TextChanged(object sender, TextChangedEventArgs e)
 		{
 
+		}
+
+		private void FileOpen(object sender, ExecutedRoutedEventArgs e)
+		{
+			OpenFileDialog open_fd = new OpenFileDialog();			//调用系统打开文件窗口
+			open_fd.Filter = "TXT文本|*.txt";						//文件过滤器
+			if (open_fd.ShowDialog() == true)						//选择了文件
+			{
+				wpf_SendBox.Text = File.ReadAllText(open_fd.FileName);//读TXT方法1 简单，快捷，为StreamReader的封装
+				//StreamReader sr = new StreamReader(open_fd.FileName);//读TXT方法2 复杂，功能强大
+				//sendTBox.Text = sr.ReadToEnd();//调用ReadToEnd方法读取选中文件的全部内容
+				//sr.Close();//关闭当前文件读取流
+			}
+		}
+
+		private void FileSave(object sender, ExecutedRoutedEventArgs e)
+		{
+
+		}
+
+		private void Window_Closed(object sender, ExecutedRoutedEventArgs e)
+		{
+			
 		}
 	}
 }
